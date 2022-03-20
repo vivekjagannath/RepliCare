@@ -1,0 +1,29 @@
+digraph G {
+node [shape=box];
+"body" [label="body"];
+"left_shoulder_link_1" [label="left_shoulder_link_1"];
+"left_shoulder_link_2" [label="left_shoulder_link_2"];
+"left_upper_arm" [label="left_upper_arm"];
+"left_forearm" [label="left_forearm"];
+"right_shoulder_link_1" [label="right_shoulder_link_1"];
+"right_shoulder_link_2" [label="right_shoulder_link_2"];
+"right_upper_arm" [label="right_upper_arm"];
+"right_forearm" [label="right_forearm"];
+node [shape=ellipse, color=blue, fontcolor=blue];
+"body" -> "left_shoulder_yaw" [label="xyz: 0 0.055 0.12 \nrpy: 0 -0 0"]
+"left_shoulder_yaw" -> "left_shoulder_link_1"
+"left_shoulder_link_1" -> "left_shoulder_pitch" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"left_shoulder_pitch" -> "left_shoulder_link_2"
+"left_shoulder_link_2" -> "left_shoulder_roll" [label="xyz: 0 0.005 0 \nrpy: 0 -0 0"]
+"left_shoulder_roll" -> "left_upper_arm"
+"left_upper_arm" -> "left_elbow" [label="xyz: 0 0.055 0 \nrpy: 0 -0 0"]
+"left_elbow" -> "left_forearm"
+"body" -> "right_shoulder_yaw" [label="xyz: 0 -0.055 0.12 \nrpy: 0 -0 0"]
+"right_shoulder_yaw" -> "right_shoulder_link_1"
+"right_shoulder_link_1" -> "right_shoulder_pitch" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"right_shoulder_pitch" -> "right_shoulder_link_2"
+"right_shoulder_link_2" -> "right_shoulder_roll" [label="xyz: 0 -0.005 0 \nrpy: 0 -0 0"]
+"right_shoulder_roll" -> "right_upper_arm"
+"right_upper_arm" -> "right_elbow" [label="xyz: 0 -0.055 0 \nrpy: 0 -0 0"]
+"right_elbow" -> "right_forearm"
+}

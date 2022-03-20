@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+
+<robot name="RepliCare" xmlns:xacro="https://ros.org/wiki/xacro">
+	
+	<!-- constants -->
+	<xacro:property name="body_length" value="0.1" />
+	<xacro:property name="body_width" value="0.1" />
+	<xacro:property name="body_height" value="0.3" />
+	<xacro:property name="arm_link_length" value="0.01" />
+	<xacro:property name="arm_link_width" value="0.01" />
+	<xacro:property name="arm_link_height" value="0.05" />
+	<xacro:property name="joints_link_length" value="0.01" />
+	<xacro:property name="joints_link_width" value="0.01" />
+	<xacro:property name="joints_link_height" value="0.01" />
+	<xacro:property name="deg_to_rad" value="0.017453292519943295" />
+
+
+	<!-- macros -->
+	<xacro:macro name="make_link" params="name roll:=0 pitch:=0 yaw:=0 xyz">
+		<link name="${name}">
+			<visual>
+				<geometry>
+					<box size="${arm_link_length} ${arm_link_width} ${arm_link_height}" />
+				</geometry>
+				<origin rpy="${roll*deg_to_rad} ${pitch*deg_to_rad} ${yaw*deg_to_rad}" xyz="${xyz}" />
+				<material name="green">
+					<color rgba="0 1 0 1" />
+				</material>
+			</visual>
+			<collision>
+				<geometry>
+					<box size="${arm_link_length} ${arm_link_width} ${arm_link_height}" />
+				</geometry>
+				<origin rpy="${roll*deg_to_rad} ${pitch*deg_to_rad} ${yaw*deg_to_rad}" xyz="${xyz}" />
+			</collision>
+			<inertial>
+				<mass value="0.1" />
+				<inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
+			</inertial>
+		</link>
+	</xacro:macro>
+
+	<xacro:macro name="make_joint" params="name parent child xyz roll:=0 pitch:=0 yaw:=0 axis lower upper">
+		<joint name="${name}" type="revolute">
+			<parent link="${parent}" />
+			<child link="${child}" />
+			<origin xyz="${xyz}" />
+			<axis xyz="${axis}" />
+			<limit effort="30" velocity="1.0" lower="${lower*deg_to_rad}" upper="${upper*deg_to_rad}" />
+		</joint>
+	</xacro:macro>
+
+	<xacro:macro name="make_joints_link" params="name xyz">
+		<link name="${name}">
+			<visual>
+				<geometry>
+					<box size="${joints_link_length} ${joints_link_width} ${joints_link_height}" />
+				</geometry>
+				<origin rpy="0 0 0" xyz="${xyz}" />
+				<material name="transparent">
+					<color rgba="0 0 0 0" />
+				</material>
+			</visual>
+			<collision>
+				<geometry>
+					<box size="${joints_link_length} ${joints_link_width} ${joints_link_height}" />
+				</geometry>
+				<origin rpy="0 0 0" xyz="${xyz}" />
+			</collision>
+			<inertial>
+				<mass value="0.01" />
+				<inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
+			</inertial>
+		</link>
+	</xacro:macro>
+
+	<xacro:macro name="transmission_block" params="joint_name">
+		<transmission name="tran1">
+			<type>transmission_interface/SimpleTransmission</type>
+			<joint  name="${joint_name}">
+				<hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+			</joint>
+			<actuator name="motor1">
+				<hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+				<mechanicalReduction>1</mechanicalReduction>
+			</actuator>
+		</transmission>
+	</xacro:macro>
+
+
+	<!-- model definition -->
+	<link name="body">
+		<visual>
+			<geometry>
+				<box size="${body_length} ${body_width} ${body_height}" />
+			</geometry>
+			<origin rpy="0 0 0" xyz="0 0 0" />
+			<material name="red">
+				<color rgba="1 0 0 1" />
+			</material>
+		</visual>
+		<collision>
+			<geometry>
+				<box size="${body_length} ${body_width} ${body_height}" />
+			</geometry>
+			<origin rpy="0 0 0" xyz="0 0 0" />
+		</collision>
+		<inertial>
+			<mass value="1.0" />
+			<inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
+		</inertial>
+	</link>
+
+
+	<!-- left arm -->
+	<xacro:make_joint name="left_shoulder_yaw" parent="body" child="left_shoulder_link_1" xyz="0 ${(body_width/2) + (arm_link_width/2)} ${0.8*(body_height/2)}" axis="0 0 1" upper="90" lower="-90" />
+	<xacro:make_joints_link name="left_shoulder_link_1" xyz="0 ${joints_link_width/2} 0" />
+	<xacro:make_joint name="left_shoulder_pitch" parent="left_shoulder_link_1" child="left_shoulder_link_2" xyz="0 0 0" axis="0 1 0" upper="90" lower="-90" />
+	<xacro:make_joints_link name="left_shoulder_link_2" xyz="0 0 0" />
+	<xacro:make_joint name="left_shoulder_roll" parent="left_shoulder_link_2" child="left_upper_arm" xyz="0 ${arm_link_width/2} 0" axis="1 0 0" upper="90" lower="-90" />
+	<xacro:make_link name="left_upper_arm" roll="90" xyz="0 ${arm_link_height/2} 0" />
+	<xacro:make_joint name="left_elbow" parent="left_upper_arm" child="left_forearm" xyz="0 ${arm_link_height + (arm_link_width/2)} 0" roll="90" axis="1 0 0" upper="135" lower="-135" />
+	<xacro:make_link name="left_forearm" roll="90" xyz="0 ${(arm_link_height/2)} 0" />
+
+	<!-- right arm -->
+	<xacro:make_joint name="right_shoulder_yaw" parent="body" child="right_shoulder_link_1" xyz="0 -${(body_width/2) + (arm_link_width/2)} ${0.8*(body_height/2)}" axis="0 0 1" upper="90" lower="-90" />
+	<xacro:make_joints_link name="right_shoulder_link_1" xyz="0 -${joints_link_width/2} 0" />
+	<xacro:make_joint name="right_shoulder_pitch" parent="right_shoulder_link_1" child="right_shoulder_link_2" xyz="0 0 0" axis="0 1 0" upper="90" lower="-90" />
+	<xacro:make_joints_link name="right_shoulder_link_2" xyz="0 0 0" />
+	<xacro:make_joint name="right_shoulder_roll" parent="right_shoulder_link_2" child="right_upper_arm" xyz="0 -${arm_link_width/2} 0" axis="1 0 0" upper="90" lower="-90" />
+	<xacro:make_link name="right_upper_arm" roll="-90" xyz="0 -${arm_link_height/2} 0" />
+	<xacro:make_joint name="right_elbow" parent="right_upper_arm" child="right_forearm" xyz="0 -${arm_link_height+(arm_link_width/2)} 0" roll="-90" axis="1 0 0" upper="135" lower="-135" />
+	<xacro:make_link name="right_forearm" roll="-90" xyz="0 -${arm_link_height/2} 0" />
+
+	<!-- adding transmission to joints -->
+	<xacro:transmission_block joint_name="left_shoulder_yaw" />
+	<xacro:transmission_block joint_name="left_shoulder_pitch" />
+	<xacro:transmission_block joint_name="left_shoulder_roll" />
+	<xacro:transmission_block joint_name="left_elbow" />
+	<xacro:transmission_block joint_name="right_shoulder_yaw" />
+	<xacro:transmission_block joint_name="right_shoulder_pitch" />
+	<xacro:transmission_block joint_name="right_shoulder_roll" />
+	<xacro:transmission_block joint_name="right_elbow" />
+
+	<!-- ros control plugin -->
+	<gazebo>
+		<plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+			<robotNamespace>/RepliCare</robotNamespace>
+		</plugin>
+	</gazebo>
+
+</robot>
